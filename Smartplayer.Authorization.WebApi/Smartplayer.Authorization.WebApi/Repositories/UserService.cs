@@ -31,11 +31,6 @@ namespace Smartplayer.Authorization.WebApi.Repositories
             return await _userManager.FindByNameAsync(username);
         }
 
-        public async Task<IdentityResult> CreateUser(ApplicationUser applicationUser, string password)
-        {
-            return await _userManager.CreateAsync(applicationUser, password);
-        }
-
         public async Task<ApplicationUser> GetUserByEmail(string email)
         {
             return await _userManager.FindByEmailAsync(email);

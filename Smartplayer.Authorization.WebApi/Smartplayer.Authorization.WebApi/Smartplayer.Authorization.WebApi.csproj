@@ -3,6 +3,9 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <UserSecretsId>aspnet-Smartplayer.Authorization.WebApi-AB5E711D-1AE7-46D3-9BBF-ED179CF2ADD8</UserSecretsId>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>bin\Debug\netcoreapp2.0\API.xml</DocumentationFile>
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.0.2" PrivateAssets="All" />

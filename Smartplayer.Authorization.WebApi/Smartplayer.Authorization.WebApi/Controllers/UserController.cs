@@ -19,6 +19,9 @@ using Smartplayer.Common.ResponseToFrontend;
 
 namespace Smartplayer.Authorization.WebApi.Controllers
 {
+    /// <summary>
+    /// Controller for Users Authorization
+    /// </summary>
     [Route("api/[controller]")]
     public class UserController : Controller
     {
@@ -30,7 +33,7 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         public UserController(
             ApplicationDbContext appContext,
             SignInManager<ApplicationUser> signInManager,
-            ILogger<AccountController> logger,
+            ILogger<TeamController> logger,
             IUserService userService,
             IConfiguration configuration)
         {
@@ -41,7 +44,15 @@ namespace Smartplayer.Authorization.WebApi.Controllers
             _appContext = appContext;
         }
 
+        /// <summary>
+        /// Return authorization token for user
+        /// </summary>
+        /// <param name="loginData"></param>
+        /// <returns></returns>
         [HttpPost("token")]
+        [ProducesResponseType(200, Type = typeof(string))]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
         public async Task<IActionResult> Token(LoginData loginData)
         {
             var user = await _userService.GetUserByEmail(loginData.Email);
@@ -54,7 +65,15 @@ namespace Smartplayer.Authorization.WebApi.Controllers
             return Ok(await GenerateTokens(user, loginData.Platform.ToString().ToLower()));
         }
 
+        /// <summary>
+        /// Return refresh token for user
+        /// </summary>
+        /// <param name="refreshTokenData"></param>
+        /// <returns></returns>
         [HttpPost("refreshtoken")]
+        [ProducesResponseType(200, Type = typeof(string))]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
         public async Task<IActionResult> RefreshToken(RefreshTokenData refreshTokenData)
         {
             if (refreshTokenData == null || string.IsNullOrEmpty(refreshTokenData.RefreshToken))
@@ -71,7 +90,15 @@ namespace Smartplayer.Authorization.WebApi.Controllers
             return Ok(await GenerateTokens(user, dataForRefresh[2]));
         }
 
+        /// <summary>
+        /// Sign up new user
+        /// </summary>
+        /// <param name="signUpRequest"></param>
+        /// <returns></returns>
         [HttpPost("register")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
         public async Task<IActionResult> Register(SignUpRequest signUpRequest)
         {
             var user = await _userService.GetUserByEmail(signUpRequest.Email);
