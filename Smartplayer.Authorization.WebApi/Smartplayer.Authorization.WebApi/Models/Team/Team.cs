@@ -10,6 +10,8 @@ namespace Smartplayer.Authorization.WebApi.Models.Team
         public int Id { get; set; }
         public string Name { get; set; }
         public ICollection<Player.PlayerTeam> PlayerTeams { get; set; }
+        public ICollection<Game.Game> Games { get; set; }
+        public int ClubId { get; set; }
         public virtual Club.Club Club { get; set; }
     }
 }

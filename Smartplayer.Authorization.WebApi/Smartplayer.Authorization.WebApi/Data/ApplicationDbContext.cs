@@ -33,8 +33,11 @@ namespace Smartplayer.Authorization.WebApi.Data
 
             builder.Entity<Club>().ToTable("Club").HasKey(i => i.Id);
             builder.Entity<Club>().HasMany(i => i.Fields).WithOne(i => i.Club);
-            builder.Entity<Club>().HasMany(i => i.Players).WithOne(i => i.Club);
             builder.Entity<Club>().HasMany(i => i.Teams).WithOne(i => i.Club);
+
+            builder.Entity<Team>().ToTable("Team").HasKey(i => i.Id);
+            builder.Entity<Team>().HasOne(i => i.Club).WithMany(i => i.Teams);
+            builder.Entity<Team>().HasMany(i => i.Games).WithOne(i => i.Team);
 
             builder.Entity<PlayerTeam>()
                 .ToTable("PlayerTeam")
@@ -50,6 +53,17 @@ namespace Smartplayer.Authorization.WebApi.Data
                 .WithMany(i => i.PlayerTeams)
                 .HasForeignKey(i => i.TeamId);
 
+            builder.Entity<Field>().ToTable("Field").HasKey(i => i.Id);
+            builder.Entity<Field>().HasOne(i => i.Club).WithMany(i => i.Fields);
+
+            builder.Entity<Module>().ToTable("Module").HasKey(i => i.Id);
+            builder.Entity<Module>().HasOne(i => i.Club).WithMany(i => i.Modules);
+
+            builder.Entity<Game>().ToTable("Game").HasKey(i => i.Id);
+            builder.Entity<Game>().HasOne(i => i.Team).WithMany(i => i.Games);
+
+
+            builder.Entity<Player>().ToTable("Player").HasKey(i => i.Id);
         }
     }
 }

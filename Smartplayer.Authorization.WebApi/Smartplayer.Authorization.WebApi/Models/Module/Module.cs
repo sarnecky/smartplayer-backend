@@ -10,5 +10,7 @@ namespace Smartplayer.Authorization.WebApi.Models.Module
         public int Id { get; set; }
         public string Name { get; set; }
         public string MACAddress { get; set; }
+        public int ClubId { get; set; }
+        public virtual Club.Club Club { get; set; }
     }
 }

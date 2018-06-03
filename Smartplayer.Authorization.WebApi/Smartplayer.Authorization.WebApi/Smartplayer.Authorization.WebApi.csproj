@@ -21,4 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Smartplayer.Common\Smartplayer.Common.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Data\Migrations\" />
+  </ItemGroup>
 </Project>

@@ -12,6 +12,7 @@ namespace Smartplayer.Authorization.WebApi.Models.Field
         public string Address { get; set; }
         public bool Private { get; set; }
         public string JSONCoordinates { get; set; }
+        public int ClubId { get; set; }
         public virtual Club.Club Club { get; set; }
     }
 }

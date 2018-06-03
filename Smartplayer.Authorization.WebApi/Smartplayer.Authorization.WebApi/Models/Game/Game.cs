@@ -10,6 +10,7 @@ namespace Smartplayer.Authorization.WebApi.Models.Game
         public int Id { get; set; }
         public string Host { get; set; }
         public string Opponent { get; set; }
+        public int TeamId { get; set; }
         public virtual Team.Team Team { get; set; }
     }
 }

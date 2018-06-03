@@ -9,8 +9,8 @@ namespace Smartplayer.Authorization.WebApi.Models.Club
     {
         public int Id { get; set; }
         public string FullName { get; set; }
-        public ICollection<Player.Player> Players { get; set; }
         public ICollection<Team.Team> Teams { get; set; }
         public ICollection<Field.Field> Fields { get; set; }
+        public ICollection<Module.Module> Modules { get; set; }
     }
 }

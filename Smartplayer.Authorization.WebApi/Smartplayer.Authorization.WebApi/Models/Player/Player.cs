@@ -14,6 +14,5 @@ namespace Smartplayer.Authorization.WebApi.Models.Player
         public float Growth { get; set; }
         public float Weight { get; set; }
         public ICollection<PlayerTeam> PlayerTeams { get; set; }
-        public virtual Club.Club Club { get; set; }
     }
 }
