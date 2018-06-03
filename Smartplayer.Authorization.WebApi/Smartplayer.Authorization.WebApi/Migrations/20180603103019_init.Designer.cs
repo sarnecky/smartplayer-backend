@@ -11,7 +11,7 @@ using System;
 namespace Smartplayer.Authorization.WebApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20180603094602_init")]
+    [Migration("20180603103019_init")]
     partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -182,6 +182,21 @@ namespace Smartplayer.Authorization.WebApi.Migrations
                     b.ToTable("AspNetUsers");
                 });
 
+            modelBuilder.Entity("Smartplayer.Authorization.WebApi.Data.Migrations.ApplicationUserClub", b =>
+                {
+                    b.Property<string>("ApplicationUserId");
+
+                    b.Property<int>("ClubId");
+
+                    b.Property<int>("Id");
+
+                    b.HasKey("ApplicationUserId", "ClubId");
+
+                    b.HasIndex("ClubId");
+
+                    b.ToTable("ApplicationUserClub");
+                });
+
             modelBuilder.Entity("Smartplayer.Authorization.WebApi.Models.Club.Club", b =>
                 {
                     b.Property<int>("Id")
@@ -345,6 +360,19 @@ namespace Smartplayer.Authorization.WebApi.Migrations
                     b.HasOne("Smartplayer.Authorization.WebApi.Data.ApplicationUser")
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Smartplayer.Authorization.WebApi.Data.Migrations.ApplicationUserClub", b =>
+                {
+                    b.HasOne("Smartplayer.Authorization.WebApi.Data.ApplicationUser", "ApplicationUser")
+                        .WithMany("ApplicationUserClubs")
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Smartplayer.Authorization.WebApi.Models.Club.Club", "Club")
+                        .WithMany("ApplicationUsersClubs")
+                        .HasForeignKey("ClubId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Smartplayer.Authorization.WebApi.Data.Migrations;
 using Smartplayer.Authorization.WebApi.Models.Club;
 using Smartplayer.Authorization.WebApi.Models.Field;
 using Smartplayer.Authorization.WebApi.Models.Game;
@@ -22,6 +23,7 @@ namespace Smartplayer.Authorization.WebApi.Data
         public DbSet<Player> Player { get; set; }
         public DbSet<PlayerTeam> PlayerTeam { get; set; }
         public DbSet<Team> Teams { get; set; }
+        public DbSet<ApplicationUserClub> ApplicationUserClubs { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
@@ -31,6 +33,7 @@ namespace Smartplayer.Authorization.WebApi.Data
         {
             base.OnModelCreating(builder);
 
+            builder.Entity<ApplicationUser>().ToTable("User");
             builder.Entity<Club>().ToTable("Club").HasKey(i => i.Id);
             builder.Entity<Club>().HasMany(i => i.Fields).WithOne(i => i.Club);
             builder.Entity<Club>().HasMany(i => i.Teams).WithOne(i => i.Club);
@@ -52,6 +55,20 @@ namespace Smartplayer.Authorization.WebApi.Data
                 .HasOne(i => i.Team)
                 .WithMany(i => i.PlayerTeams)
                 .HasForeignKey(i => i.TeamId);
+
+            builder.Entity<ApplicationUserClub>()
+                .ToTable("ApplicationUserClub")
+                .HasKey(bc => new { bc.ApplicationUserId, bc.ClubId });
+
+            builder.Entity<ApplicationUserClub>()
+                .HasOne(i => i.ApplicationUser)
+                .WithMany(i => i.ApplicationUserClubs)
+                .HasForeignKey(i => i.ApplicationUserId);
+
+            builder.Entity<ApplicationUserClub>()
+                .HasOne(i => i.Club)
+                .WithMany(i => i.ApplicationUsersClubs)
+                .HasForeignKey(i => i.ClubId);
 
             builder.Entity<Field>().ToTable("Field").HasKey(i => i.Id);
             builder.Entity<Field>().HasOne(i => i.Club).WithMany(i => i.Fields);

@@ -186,6 +186,31 @@ namespace Smartplayer.Authorization.WebApi.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ApplicationUserClub",
+                columns: table => new
+                {
+                    ApplicationUserId = table.Column<string>(nullable: false),
+                    ClubId = table.Column<int>(nullable: false),
+                    Id = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ApplicationUserClub", x => new { x.ApplicationUserId, x.ClubId });
+                    table.ForeignKey(
+                        name: "FK_ApplicationUserClub_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ApplicationUserClub_Club_ClubId",
+                        column: x => x.ClubId,
+                        principalTable: "Club",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Field",
                 columns: table => new
                 {
@@ -296,6 +321,11 @@ namespace Smartplayer.Authorization.WebApi.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_ApplicationUserClub_ClubId",
+                table: "ApplicationUserClub",
+                column: "ClubId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
                 column: "RoleId");
@@ -362,6 +392,9 @@ namespace Smartplayer.Authorization.WebApi.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "ApplicationUserClub");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
