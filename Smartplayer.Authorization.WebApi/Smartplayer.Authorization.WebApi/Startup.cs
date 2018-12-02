@@ -16,6 +16,13 @@ using Smartplayer.Authorization.WebApi.Repositories;
 using Microsoft.Extensions.Logging;
 using System.IO;
 using Microsoft.Extensions.PlatformAbstractions;
+using Smartplayer.Authorization.WebApi.Repositories.Field;
+using Smartplayer.Authorization.WebApi.Repositories.Club;
+using Newtonsoft.Json;
+using Smartplayer.Authorization.WebApi.DTO.Field.Input;
+using Smartplayer.Authorization.WebApi.Repositories.Player;
+using Smartplayer.Authorization.WebApi.Repositories.PlayerTeam;
+using Smartplayer.Authorization.WebApi.Repositories.Team;
 
 namespace Smartplayer.Authorization.WebApi
 {
@@ -45,7 +52,20 @@ namespace Smartplayer.Authorization.WebApi
                     options.Conventions.AuthorizePage("/Account/Logout");
                 });
 
-            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IUserService, UserService>(); 
+            services.AddTransient<IFieldRepository, FieldRepository>();
+            services.AddTransient<IClubRepository, ClubRepository>(); 
+            services.AddTransient<IPlayerRepository, PlayerRepository>(); 
+            services.AddTransient<IPlayerTeamRepository, PlayerTeamRepository>(); 
+            services.AddTransient<ITeamRepository, TeamRepository>();
+
+            AutoMapper.Mapper.Initialize(cfg =>
+            {
+                cfg.CreateMap<Models.Club.Club, DTO.Club.Output.Club>();
+                cfg.CreateMap<Models.Field.Field, DTO.Field.Output.Field>()
+                    .ForMember(i => i.FieldCoordinates, o => o.MapFrom(i => JsonConvert.DeserializeObject<FieldCoordinates>(i.JSONCoordinates)));
+                cfg.CreateMap<Models.Player.Player, DTO.Player.Output.Player>();
+            });
 
             services.AddSwaggerGen(c =>
             {
@@ -55,8 +75,6 @@ namespace Smartplayer.Authorization.WebApi
                     Version = "v2",
                     Description = "API for SmartPlayer, system for tracking players during matchs and trainings",     
                 });
-                var filePath = Path.Combine(PlatformServices.Default.Application.ApplicationBasePath, "API.xml");
-                c.IncludeXmlComments(filePath);
             });
             // Register no-op EmailSender used by account confirmation and password reset during development
             // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=532713

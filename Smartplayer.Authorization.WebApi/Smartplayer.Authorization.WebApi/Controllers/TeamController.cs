@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Smartplayer.Authorization.WebApi.Data;
+using Smartplayer.Authorization.WebApi.Repositories.Interfaces;
 
 namespace Smartplayer.Authorization.WebApi.Controllers
 {
@@ -13,10 +14,12 @@ namespace Smartplayer.Authorization.WebApi.Controllers
     public class TeamController : Controller
     {
         private readonly ILogger _logger;
+        private readonly ITeamRepository _teamRepository;
 
-        public TeamController(ILogger<TeamController> logger)
+        public TeamController(ILogger<TeamController> logger, ITeamRepository teamRepository)
         {
             _logger = logger;
+            _teamRepository = teamRepository;
         }
 
         /// <summary>
@@ -24,64 +27,20 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("create")]
-        [ProducesResponseType(200, Type = typeof(string))]
+        [ProducesResponseType(200, Type = typeof(DTO.Team.Output.Team))]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(DTO.Team.Input.Team team)
         {
-            return Ok();
+            var teamResult = await _teamRepository.AddAsync(new Models.Team.Team()
+            {
+                Name = team.Name,
+                ClubId = team.ClubId
+            });
+
+            var result = AutoMapper.Mapper.Map<DTO.Team.Output.Team>(teamResult);
+            return Ok(result);
         }
 
-        /// <summary>
-        /// Return details for club
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("details/{clubId}")]
-        [ProducesResponseType(200, Type = typeof(string))]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
-        public async Task<IActionResult> GetDetails()
-        {
-            return Ok();
-        }
-
-        /// <summary>
-        /// Update club details
-        /// </summary>
-        /// <returns></returns>
-        [HttpPut("update")]
-        [ProducesResponseType(200, Type = typeof(string))]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
-        public async Task<IActionResult> Update()
-        {
-            return Ok();
-        }
-
-        /// <summary>
-        /// Update club details
-        /// </summary>
-        /// <returns></returns>
-        [HttpDelete("delete")]
-        [ProducesResponseType(200, Type = typeof(string))]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
-        public async Task<IActionResult> Delete()
-        {
-            return Ok();
-        }
-
-        /// <summary>
-        /// Filtered list of teams for club
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("listOfTeamsForClub/{clubId}")]
-        [ProducesResponseType(200, Type = typeof(string))]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
-        public async Task<IActionResult> GetListOfTeams()
-        {
-            return Ok();
-        }
     }
 }

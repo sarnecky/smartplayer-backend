@@ -104,6 +104,7 @@ namespace Smartplayer.Authorization.WebApi.Controllers
             var user = await _userService.GetUserByEmail(signUpRequest.Email);
             if(user!=null)
                 return BadRequest(ResponseMessage.UserExsits());
+
             var newUser = new ApplicationUser()
             {
                 UserName = $"{signUpRequest.FirstName} {signUpRequest.LastName}",

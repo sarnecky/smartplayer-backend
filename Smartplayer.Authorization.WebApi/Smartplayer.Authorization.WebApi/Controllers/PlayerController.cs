@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Smartplayer.Authorization.WebApi.Data;
+using Smartplayer.Authorization.WebApi.Repositories.Interfaces;
 
 namespace Smartplayer.Authorization.WebApi.Controllers
 {
@@ -13,23 +14,63 @@ namespace Smartplayer.Authorization.WebApi.Controllers
     public class PlayerController : Controller
     {
         private readonly ILogger _logger;
+        private readonly IPlayerRepository _playerRepository;
+        private readonly IPlayerTeamRepository _playerTeamRepository;
+        private readonly ITeamRepository _teamRepository;
 
-        public PlayerController(ILogger<PlayerController> logger)
+        public PlayerController(
+            ILogger<PlayerController> logger, 
+            IPlayerRepository playerRepository,
+            IPlayerTeamRepository playerTeamRepository,
+            ITeamRepository teamRepository)
         {
             _logger = logger;
+            _playerRepository = playerRepository;
+            _playerTeamRepository = playerTeamRepository;
+            _teamRepository = teamRepository;
         }
 
         /// <summary>
         /// Creating new player
         /// </summary>
         /// <returns></returns>
-        [HttpPost("create/{clubId}")]
-        [ProducesResponseType(200, Type = typeof(string))]
+        [HttpPost("create")]
+        [ProducesResponseType(200, Type = typeof(DTO.Player.Output.Player))]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(DTO.Player.Input.Player player)
         {
-            return Ok();
+            var playerResult = await _playerRepository.AddAsync(new Models.Player.Player()
+            {
+                DateOfBirth = player.DateOfBirth,
+                FirstName = player.FirstName,
+                LastName = player.LastName,
+                Growth = player.Growth,
+                Weight = player.Weight
+            });
+
+            var result = AutoMapper.Mapper.Map<DTO.Player.Output.Player>(playerResult);
+            return Ok(result);
+        }
+
+        [HttpPost("addPlayerToTeam")]
+        [ProducesResponseType(200, Type = typeof(bool))]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        public async Task<IActionResult> AddPlayerToTeam(string playerId, string teamId)
+        {
+            if (!int.TryParse(playerId, out int id) || !int.TryParse(teamId, out int assignedTeamId))
+                return BadRequest("Player and Team id shoud be integer");
+
+            var playerResult = await _playerTeamRepository.AddAsync(new Models.Player.PlayerTeam()
+            {
+                PlayerId = id,
+                TeamId = assignedTeamId
+            });
+
+            return playerResult != null
+                ? Ok(true)
+                : Ok(false);
         }
 
         /// <summary>
@@ -40,61 +81,47 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         [ProducesResponseType(200, Type = typeof(string))]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> GetDetails()
+        public async Task<IActionResult> GetDetails(string playerId)
         {
-            return Ok();
-        }
+            if (!int.TryParse(playerId, out int id))
+                return BadRequest("Id shoud be integer");
 
-        /// <summary>
-        /// Update club details
-        /// </summary>
-        /// <returns></returns>
-        [HttpPut("update")]
-        [ProducesResponseType(200, Type = typeof(string))]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
-        public async Task<IActionResult> Update()
-        {
-            return Ok();
-        }
+            var playerResult = await _playerRepository.FindById(id);
 
-        /// <summary>
-        /// Remove player from club
-        /// </summary>
-        /// <returns></returns>
-        [HttpDelete("removeFromClub/{clubId}/{playerId}")]
-        [ProducesResponseType(200, Type = typeof(string))]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
-        public async Task<IActionResult> Delete()
-        {
-            return Ok();
-        }
-
-        /// <summary>
-        /// Remove player from team
-        /// </summary>
-        /// <returns></returns>
-        [HttpDelete("removeFromTeam/{clubId}/{teamId}/{playerId}")]
-        [ProducesResponseType(200, Type = typeof(string))]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
-        public async Task<IActionResult> DeleteFormTeam()
-        {
-            return Ok();
+            var result = AutoMapper.Mapper.Map<DTO.Player.Output.Player>(playerResult);
+            return Ok(result);
         }
 
         /// <summary>
         /// Filtered list of playes for team
         /// </summary>
         /// <returns></returns>
-        [HttpGet("listOfPlayersForTeam/{teamId}")]
+        [HttpGet("listOfPlayersForClub/{clubId}")]
         [ProducesResponseType(200, Type = typeof(string))]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> GetPlayers()
+        public async Task<IActionResult> GetPlayers(string clubId)
         {
-            return Ok();
+            if (!int.TryParse(clubId, out int id))
+                return BadRequest("Id shoud be integer");
+
+            var teams = await _teamRepository.FindByCriteriaWithPlayerTeams(i => i.ClubId == id);
+            var playerTeams = GetPlayerTeamsForAllTeams(teams).ToList();
+            var players = GetPlayers(playerTeams).ToList();
+            var mappedPlayers = AutoMapper.Mapper.Map<IList<DTO.Player.Output.Player>>(players);
+            return Ok(mappedPlayers);
         }
+
+        private IEnumerable<Models.Player.PlayerTeam> GetPlayerTeamsForAllTeams(IList<Models.Team.Team> teams) =>
+            teams.SelectMany(i => i.PlayerTeams.ToList());
+
+        private IEnumerable<Models.Player.Player> GetPlayers(IList<Models.Player.PlayerTeam> playerTeams)
+        {
+            foreach (var playerTeam in playerTeams)
+            {
+                yield return _playerRepository.FindById(playerTeam.PlayerId).GetAwaiter().GetResult(); ;
+            }
+        }
+
     }
 }

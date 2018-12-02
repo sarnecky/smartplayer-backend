@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Smartplayer.Authorization.WebApi.Data;
+using Smartplayer.Authorization.WebApi.Repositories.Interfaces;
 
 namespace Smartplayer.Authorization.WebApi.Controllers
 {
@@ -13,10 +14,13 @@ namespace Smartplayer.Authorization.WebApi.Controllers
     public class ClubController : Controller
     {
         private readonly ILogger _logger;
-
-        public ClubController(ILogger<ClubController> logger)
+        private readonly IClubRepository _clubRepository;
+        public ClubController(
+            ILogger<ClubController> logger,
+            IClubRepository clubRepository)
         {
             _logger = logger;
+            _clubRepository = clubRepository;
         }
 
         /// <summary>
@@ -24,25 +28,18 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("create")]
-        [ProducesResponseType(200, Type = typeof(string))]
+        [ProducesResponseType(200, Type = typeof(DTO.Club.Output.Club))]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(DTO.Club.Input.Club club)
         {
-            return Ok();
-        }
+            var clubResult = await _clubRepository.AddAsync(new Models.Club.Club()
+            {
+                FullName = club.FullName
+            });
 
-        /// <summary>
-        /// List of clubs for user
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("listOfClubs")]
-        [ProducesResponseType(200, Type = typeof(string))]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
-        public async Task<IActionResult> GetListClubs()
-        {
-            return Ok();
+            var result = AutoMapper.Mapper.Map<DTO.Club.Output.Club>(clubResult);
+            return Ok(result);
         }
     }
 }
