@@ -44,7 +44,6 @@ namespace Smartplayer.Authorization.WebApi.Controllers
                             Lat = position.Latitude,
                             Lng = position.Longitude,
                             GameId = gameId,
-                            TeamId = teamId,
                             PlayerId = player.Id
                         });
 

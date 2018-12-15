@@ -16,7 +16,5 @@ namespace Smartplayer.Authorization.WebApi.Models.Team
         public ICollection<Game.Game> Games { get; set; }
         public int ClubId { get; set; }
         public virtual Club.Club Club { get; set; }
-        public ICollection<Position> Positions { get; set; }
-
     }
 }
