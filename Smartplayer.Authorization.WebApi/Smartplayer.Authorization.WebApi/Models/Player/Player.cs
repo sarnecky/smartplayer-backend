@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Smartplayer.Authorization.WebApi.Models.Game;
 
 namespace Smartplayer.Authorization.WebApi.Models.Player
 {
@@ -15,5 +16,6 @@ namespace Smartplayer.Authorization.WebApi.Models.Player
         public float Growth { get; set; }
         public float Weight { get; set; }
         public ICollection<PlayerTeam> PlayerTeams { get; set; }
+        public ICollection<Position> Positions { get; set; }
     }
 }

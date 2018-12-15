@@ -12,5 +12,7 @@ namespace Smartplayer.Authorization.WebApi.Models.Game
         public string Opponent { get; set; }
         public int TeamId { get; set; }
         public virtual Team.Team Team { get; set; }
+        public ICollection<Position> Positions { get; set; }
+
     }
 }
