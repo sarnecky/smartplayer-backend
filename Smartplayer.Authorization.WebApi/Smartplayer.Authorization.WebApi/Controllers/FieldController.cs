@@ -27,10 +27,9 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         }
 
         [HttpPost("create")]
-        [ProducesResponseType(200, Type = typeof(DTO.Field.Output.Field))]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> CreateField(DTO.Field.Input.Field field)
+        public async Task<IActionResult> CreateField([FromBody]DTO.Field.Input.Field field)
         {
             var clubResult = await _fieldRepository.AddAsync(new Models.Field.Field()
             {
@@ -47,7 +46,6 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         }
 
         [HttpGet("listOfFields/{clubId}")]
-        [ProducesResponseType(200, Type = typeof(IList<DTO.Field.Output.Field>))]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
         public async Task<IActionResult> GetListClubs(string clubId)

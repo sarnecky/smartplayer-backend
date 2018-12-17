@@ -53,7 +53,7 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         [ProducesResponseType(200, Type = typeof(string))]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> Token(LoginData loginData)
+        public async Task<IActionResult> Token([FromBody]LoginData loginData)
         {
             var user = await _userService.GetUserByEmail(loginData.Email);
             if (user == null)
@@ -74,7 +74,7 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         [ProducesResponseType(200, Type = typeof(string))]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> RefreshToken(RefreshTokenData refreshTokenData)
+        public async Task<IActionResult> RefreshToken([FromBody]RefreshTokenData refreshTokenData)
         {
             if (refreshTokenData == null || string.IsNullOrEmpty(refreshTokenData.RefreshToken))
                 return BadRequest(ResponseMessage.ProblemWithRefreshToken("Refresh token is empty"));

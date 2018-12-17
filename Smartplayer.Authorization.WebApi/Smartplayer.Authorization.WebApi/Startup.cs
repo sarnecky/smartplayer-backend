@@ -24,6 +24,7 @@ using Smartplayer.Authorization.WebApi.Repositories.Player;
 using Smartplayer.Authorization.WebApi.Repositories.PlayerTeam;
 using Smartplayer.Authorization.WebApi.Repositories.Positions;
 using Smartplayer.Authorization.WebApi.Repositories.Team;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace Smartplayer.Authorization.WebApi
 {
@@ -71,12 +72,7 @@ namespace Smartplayer.Authorization.WebApi
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v2", new Swashbuckle.AspNetCore.Swagger.Info
-                {
-                    Title = "Smart Player API",
-                    Version = "v2",
-                    Description = "API for SmartPlayer, system for tracking players during matchs and trainings",     
-                });
+                c.SwaggerDoc("v1", new Info { Title = "API", Version = "v1" });
             });
             // Register no-op EmailSender used by account confirmation and password reset during development
             // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=532713
@@ -107,7 +103,7 @@ namespace Smartplayer.Authorization.WebApi
 
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v2/swagger.json", "Smart Player API");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "API");
             });
         }
     }

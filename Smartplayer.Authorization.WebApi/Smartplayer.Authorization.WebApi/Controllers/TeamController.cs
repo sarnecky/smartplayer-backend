@@ -27,10 +27,9 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("create")]
-        [ProducesResponseType(200, Type = typeof(DTO.Team.Output.Team))]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> Create(DTO.Team.Input.Team team)
+        public async Task<IActionResult> Create([FromBody]DTO.Team.Input.Team team)
         {
             var teamResult = await _teamRepository.AddAsync(new Models.Team.Team()
             {

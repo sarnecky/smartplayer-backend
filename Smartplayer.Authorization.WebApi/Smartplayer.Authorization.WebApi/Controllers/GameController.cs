@@ -24,11 +24,11 @@ namespace Smartplayer.Authorization.WebApi.Controllers
             _positionRepository = positionRepository;
         }
 
-        [HttpPost("create")]
+        [HttpPost("createPosition")]
         [ProducesResponseType(200, Type = typeof(bool))]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> Create(Positions positions)
+        public async Task<IActionResult> Create([FromBody]Positions positions)
         {
             try
             {
