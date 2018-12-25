@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Smartplayer.Authorization.WebApi.Data;
 using Smartplayer.Authorization.WebApi.DTO.Position.Input;
 using Smartplayer.Authorization.WebApi.DTO.Position.Output;
+using Smartplayer.Authorization.WebApi.Repositories.Game;
 using Smartplayer.Authorization.WebApi.Repositories.Interfaces;
 
 namespace Smartplayer.Authorization.WebApi.Controllers
@@ -18,14 +19,27 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         private readonly ILogger _logger;
         private readonly IPositionRepository _positionRepository;
         private readonly IPlayerRepository _playerRepository;
+        private readonly IGameRepository _gameRepository;
+
         public GameController(
             ILogger<GameController> logger,
             IPositionRepository positionRepository, 
-            IPlayerRepository playerRepository)
+            IPlayerRepository playerRepository,
+            IGameRepository gameRepository)
         {
             _logger = logger;
             _positionRepository = positionRepository;
             _playerRepository = playerRepository;
+            _gameRepository = gameRepository;
+        }
+
+        [HttpPost("createGame")]
+        [ProducesResponseType(200, Type = typeof(bool))]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        public async Task<IActionResult> CreateGame()
+        {
+            return Ok();
         }
 
         [HttpPost("positions/{gameId}/{mapWidth}/{mapHeight}")]
