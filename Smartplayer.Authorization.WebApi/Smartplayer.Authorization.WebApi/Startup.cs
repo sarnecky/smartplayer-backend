@@ -20,6 +20,7 @@ using Smartplayer.Authorization.WebApi.Repositories.Field;
 using Smartplayer.Authorization.WebApi.Repositories.Club;
 using Newtonsoft.Json;
 using Smartplayer.Authorization.WebApi.DTO.Field.Input;
+using Smartplayer.Authorization.WebApi.Repositories.Game;
 using Smartplayer.Authorization.WebApi.Repositories.Player;
 using Smartplayer.Authorization.WebApi.Repositories.PlayerTeam;
 using Smartplayer.Authorization.WebApi.Repositories.Positions;
@@ -61,6 +62,7 @@ namespace Smartplayer.Authorization.WebApi
             services.AddTransient<IPlayerTeamRepository, PlayerTeamRepository>();
             services.AddTransient<IPositionRepository, PositionRepository>();
             services.AddTransient<ITeamRepository, TeamRepository>(); 
+            services.AddTransient<IGameRepository, GameRepository>();
 
             AutoMapper.Mapper.Initialize(cfg =>
             {
