@@ -11,9 +11,10 @@ using System;
 namespace Smartplayer.Authorization.WebApi.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20181225173555_whereId")]
+    partial class whereId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -235,8 +236,6 @@ namespace Smartplayer.Authorization.WebApi.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<int?>("FieldId");
-
                     b.Property<string>("Host");
 
                     b.Property<string>("Opponent");
@@ -246,8 +245,6 @@ namespace Smartplayer.Authorization.WebApi.Migrations
                     b.Property<int?>("WhereId");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("FieldId");
 
                     b.HasIndex("TeamId");
 
@@ -415,10 +412,6 @@ namespace Smartplayer.Authorization.WebApi.Migrations
 
             modelBuilder.Entity("Smartplayer.Authorization.WebApi.Models.Game.Game", b =>
                 {
-                    b.HasOne("Smartplayer.Authorization.WebApi.Models.Field.Field", "Field")
-                        .WithMany()
-                        .HasForeignKey("FieldId");
-
                     b.HasOne("Smartplayer.Authorization.WebApi.Models.Team.Team", "Team")
                         .WithMany("Games")
                         .HasForeignKey("TeamId")

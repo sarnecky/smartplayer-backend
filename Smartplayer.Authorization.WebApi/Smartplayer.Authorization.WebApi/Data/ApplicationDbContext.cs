@@ -78,6 +78,7 @@ namespace Smartplayer.Authorization.WebApi.Data
             builder.Entity<Game>().ToTable("Game").HasKey(i => i.Id);
             builder.Entity<Game>().HasOne(i => i.Team).WithMany(i => i.Games);
             builder.Entity<Game>().HasMany(i => i.Positions).WithOne(i => i.Game);
+            builder.Entity<Game>().HasOne(i => i.Field);
 
             builder.Entity<Player>().ToTable("Player").HasKey(i => i.Id);
             builder.Entity<Player>().HasMany(i => i.Positions).WithOne(i => i.Player);

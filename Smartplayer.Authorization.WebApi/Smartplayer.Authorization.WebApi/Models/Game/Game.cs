@@ -14,6 +14,8 @@ namespace Smartplayer.Authorization.WebApi.Models.Game
         public int TeamId { get; set; }
         public virtual Team.Team Team { get; set; }
         public int? WhereId { get; set; }
+        public int? FieldId { get; set; }
+        public virtual Field.Field Field { get; set; }
         public ICollection<Position> Positions { get; set; }
 
     }
