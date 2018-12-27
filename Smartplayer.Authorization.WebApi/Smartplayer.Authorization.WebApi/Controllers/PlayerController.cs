@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Smartplayer.Authorization.WebApi.Data;
+using Smartplayer.Authorization.WebApi.DTO.Player.Output;
+using Smartplayer.Authorization.WebApi.Repositories.Game;
 using Smartplayer.Authorization.WebApi.Repositories.Interfaces;
 
 namespace Smartplayer.Authorization.WebApi.Controllers
@@ -17,17 +19,20 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         private readonly IPlayerRepository _playerRepository;
         private readonly IPlayerTeamRepository _playerTeamRepository;
         private readonly ITeamRepository _teamRepository;
+        private readonly IGameRepository _gameRepository;
 
         public PlayerController(
             ILogger<PlayerController> logger, 
             IPlayerRepository playerRepository,
             IPlayerTeamRepository playerTeamRepository,
-            ITeamRepository teamRepository)
+            ITeamRepository teamRepository, 
+            IGameRepository gameRepository)
         {
             _logger = logger;
             _playerRepository = playerRepository;
             _playerTeamRepository = playerTeamRepository;
             _teamRepository = teamRepository;
+            _gameRepository = gameRepository;
         }
 
         /// <summary>
@@ -122,5 +127,26 @@ namespace Smartplayer.Authorization.WebApi.Controllers
             }
         }
 
+        [HttpGet("listOfPlayersForGame/{gameId}")]
+        [ProducesResponseType(200, Type = typeof(string))]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        public async Task<IActionResult> GetPlayersForGame(string gameId)
+        {
+            if (!int.TryParse(gameId, out int id))
+                return BadRequest("Id should be integer");
+
+            var game = await _gameRepository.FindById(id);
+            var teamId = game.TeamId;
+            var team = await _playerTeamRepository.FindByCriteria(i => i.TeamId == teamId, i => i.Player);
+            var playersForGame = team.Select(i => new DTO.Player.Output.Player()
+            {
+                FirstName = i.Player.FirstName,
+                LastName = i.Player.LastName,
+                Id = i.PlayerId
+            });
+
+            return Ok(playersForGame);
+        }
     }
 }

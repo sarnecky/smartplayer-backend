@@ -20,17 +20,20 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         private readonly IPositionRepository _positionRepository;
         private readonly IPlayerRepository _playerRepository;
         private readonly IGameRepository _gameRepository;
+        private readonly IFieldRepository _fieldRepository;
 
         public GameController(
             ILogger<GameController> logger,
             IPositionRepository positionRepository, 
             IPlayerRepository playerRepository,
-            IGameRepository gameRepository)
+            IGameRepository gameRepository,
+            IFieldRepository fieldRepository)
         {
             _logger = logger;
             _positionRepository = positionRepository;
             _playerRepository = playerRepository;
             _gameRepository = gameRepository;
+            _fieldRepository = fieldRepository;
         }
 
         [HttpPost("createGame")]
@@ -103,7 +106,13 @@ namespace Smartplayer.Authorization.WebApi.Controllers
             return (0, 0);
         }
 
-       // private void 
+        private async Task GetField(int gameId)
+        {
+            var game = await _gameRepository.FindById(gameId);
+            var fieldId = game.FieldId.Value;
+            var field = await _fieldRepository.FindById(fieldId);
+
+        }
 
         private (double X, double Y)  GetMeractorXY(
             Models.Game.Position position,

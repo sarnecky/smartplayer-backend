@@ -57,6 +57,12 @@ namespace Smartplayer.Authorization.WebApi.Repositories
             return result;
         }
 
+        public async Task<IList<TAggregate>> FindByCriteria<TProperty>(Expression<Func<TAggregate, bool>> criteria, Expression<Func<TAggregate, TProperty>> include)
+        {
+            var result = await _dbSet.AsQueryable().Include(include).Where(criteria).ToListAsync();
+            return result;
+        }
+
         public async Task<TAggregate> FindSingleOrDefaultByCriteria(Expression<Func<TAggregate, bool>> criteria)
         {
             var result = await _dbSet.AsQueryable().SingleOrDefaultAsync(criteria).ConfigureAwait(false);

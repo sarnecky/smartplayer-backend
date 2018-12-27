@@ -55,6 +55,16 @@ namespace Smartplayer.Authorization.WebApi
                     options.Conventions.AuthorizePage("/Account/Logout");
                 });
 
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy",
+                    builder => builder
+                        .AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials());
+            });
+
             services.AddScoped<IUserService, UserService>(); 
             services.AddTransient<IFieldRepository, FieldRepository>();
             services.AddTransient<IClubRepository, ClubRepository>(); 
@@ -94,6 +104,9 @@ namespace Smartplayer.Authorization.WebApi
             {
                 app.UseExceptionHandler("/Error");
             }
+
+            // global policy - assign here or on each controller
+            app.UseCors("CorsPolicy");
 
             app.UseStaticFiles();
 
