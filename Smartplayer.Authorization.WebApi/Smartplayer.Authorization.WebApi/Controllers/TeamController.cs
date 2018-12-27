@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Smartplayer.Authorization.WebApi.Data;
+using Smartplayer.Authorization.WebApi.DTO.Team.Output;
 using Smartplayer.Authorization.WebApi.Repositories.Interfaces;
 
 namespace Smartplayer.Authorization.WebApi.Controllers
@@ -22,10 +23,6 @@ namespace Smartplayer.Authorization.WebApi.Controllers
             _teamRepository = teamRepository;
         }
 
-        /// <summary>
-        /// Creating new team for club
-        /// </summary>
-        /// <returns></returns>
         [HttpPost("create")]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
@@ -39,6 +36,18 @@ namespace Smartplayer.Authorization.WebApi.Controllers
 
             var result = AutoMapper.Mapper.Map<DTO.Team.Output.Team>(teamResult);
             return Ok(result);
+        }
+
+        [HttpGet("listOTeams/{clubId}")]
+        [ProducesResponseType(200, Type = typeof(bool))]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        public async Task<IActionResult> GetGames(int clubId)
+        {
+            var teams = await _teamRepository.FindByCriteria(i => i.ClubId == clubId);
+            var list = teams.Select(team => new Team() {Id = team.Id, ClubId = team.ClubId, Name = team.Name}).ToList();
+
+            return Ok(list);
         }
 
     }
