@@ -10,6 +10,8 @@ namespace Smartplayer.Authorization.WebApi.DTO.Position.Output
     {
         [JsonProperty("playerName")]
         public string PlayerName { get; set; }
+        [JsonProperty("playerId")]
+        public int PlayerId { get; set; }
         [JsonProperty("positions")]
         public IList<Output.Position> Positions { get; set; }
     }

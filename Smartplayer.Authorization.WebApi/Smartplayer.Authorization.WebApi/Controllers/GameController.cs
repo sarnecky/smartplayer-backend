@@ -5,7 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Smartplayer.Authorization.WebApi.Common.Transform;
 using Smartplayer.Authorization.WebApi.Data;
+using Smartplayer.Authorization.WebApi.DTO.Field.Input;
 using Smartplayer.Authorization.WebApi.DTO.Position.Input;
 using Smartplayer.Authorization.WebApi.DTO.Position.Output;
 using Smartplayer.Authorization.WebApi.Models.Game;
@@ -88,7 +91,7 @@ namespace Smartplayer.Authorization.WebApi.Controllers
             var positions = await _positionRepository.FindByCriteria(i => i.GameId == gameId);
             var groupedPositions = positions.GroupBy(i => i.PlayerId);
 
-            var playersWithPositions = GetPixelPositions(groupedPositions, mapWidth, mapHeight).ToList();
+            var playersWithPositions = GetPixelPositions(groupedPositions, mapWidth, mapHeight, gameId).ToList();
             return Ok(new TeamPositionsDuringGame()
             {
                 Players = playersWithPositions
@@ -98,8 +101,10 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         private IEnumerable<DTO.Position.Output.PlayerWithPositions> GetPixelPositions(
             IEnumerable<IGrouping<int, Models.Game.Position>> groupedPositions, 
             int mapWidth, 
-            int mapHeight)
+            int mapHeight,
+            int gameId)
         {
+            var transformData = GetTransformData(gameId, mapWidth, mapHeight).GetAwaiter().GetResult();
             foreach (var group in groupedPositions)
             {
                 var player = _playerRepository.FindById(group.Key).GetAwaiter().GetResult();
@@ -107,7 +112,8 @@ namespace Smartplayer.Authorization.WebApi.Controllers
                 yield return new Smartplayer.Authorization.WebApi.DTO.Position.Output.PlayerWithPositions()
                 {
                     PlayerName = $"{player.FirstName} {player.LastName}",
-                    Positions = PixelPositions(playerPositions, mapWidth, mapHeight).ToList()
+                    PlayerId = player.Id,
+                    Positions = PixelPositions(playerPositions, mapWidth, mapHeight, transformData).ToList()
                 };
             }
         }
@@ -115,11 +121,12 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         private IEnumerable<DTO.Position.Output.Position> PixelPositions(
             IEnumerator<Models.Game.Position> playerPositions,
             int mapWidth,
-            int mapHeight)
+            int mapHeight,
+            TransformData transformData)
         {
             while (playerPositions.MoveNext())
             {
-                var pixelPosition = GetPixelPosition(playerPositions.Current, mapWidth, mapHeight);
+                var pixelPosition = GetPixelPosition(playerPositions.Current, mapWidth, mapHeight, transformData);
 
                 yield return new DTO.Position.Output.Position()
                 {
@@ -133,23 +140,54 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         private (double X, double Y) GetPixelPosition(
             Models.Game.Position position,
             int mapWidth,
-            int mapHeight)
+            int mapHeight,
+            TransformData transformData)
         {
+            var mercatorPosition = GetMeractorXY(position, mapWidth, mapHeight);
 
+            var x = mercatorPosition.X - transformData.StartXOffset;
+            var y = mercatorPosition.Y - transformData.StartYOffset;
+            
+            //var x
 
             return (0, 0);
         }
 
-        private async Task GetField(int gameId)
+
+        private async Task<TransformData> GetTransformData(
+            int gameId,
+            int mapWidth,
+            int mapHeight)
         {
             var game = await _gameRepository.FindById(gameId);
             var fieldId = game.FieldId.Value;
             var field = await _fieldRepository.FindById(fieldId);
+            var fieldCoordinates = JsonConvert.DeserializeObject<FieldCoordinates>(field.JSONCoordinates);
 
+            var leftDown = GetMeractorXY(fieldCoordinates.LeftDown, mapWidth, mapHeight);
+            var leftUp = GetMeractorXY(fieldCoordinates.LeftUp, mapWidth, mapHeight);
+            var rightDown = GetMeractorXY(fieldCoordinates.LeftDown, mapWidth, mapHeight);
+            var rightUp = GetMeractorXY(fieldCoordinates.RightUp, mapWidth, mapHeight);
+
+            return new TransformData()
+            {
+
+            };
         }
-
+        
         private (double X, double Y)  GetMeractorXY(
             Models.Game.Position position,
+            int mapWidth,
+            int mapHeight)
+        {
+            var x = (position.Lng + 180) * (mapWidth / 360);
+            var latRad = position.Lat * Math.PI / 180;
+            var mercN = Math.Log(Math.Tan((Math.PI / 4) + (latRad / 2)));
+            var y = (mapHeight / 2) - (mapWidth * mercN / 2 * Math.PI);
+            return (x, y);
+        }
+        private (double X, double Y) GetMeractorXY(
+            Coordinates position,
             int mapWidth,
             int mapHeight)
         {
