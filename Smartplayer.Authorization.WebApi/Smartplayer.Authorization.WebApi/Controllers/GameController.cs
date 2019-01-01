@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -82,7 +82,7 @@ namespace Smartplayer.Authorization.WebApi.Controllers
             return Ok(list);
         }
 
-        [HttpPost("positions/{gameId}/{mapWidth}/{mapHeight}")]
+        [HttpGet("positions/{gameId}/{mapWidth}/{mapHeight}")]
         [ProducesResponseType(200, Type = typeof(bool))]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
@@ -130,9 +130,9 @@ namespace Smartplayer.Authorization.WebApi.Controllers
 
                 yield return new DTO.Position.Output.Position()
                 {
-                    X = pixelPosition.X,
-                    Y = pixelPosition.Y,
-                    Date = DateTimeOffset.MaxValue
+                    X = (int)pixelPosition.X,
+                    Y = (int)pixelPosition.Y,
+                    Date = playerPositions.Current.Date
                 };
             }
         }
@@ -145,12 +145,20 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         {
             var mercatorPosition = GetMeractorXY(position, mapWidth, mapHeight);
 
+            //przeniesienie modelu zeby byl w poczatku ukladu wspolrzednych
             var x = mercatorPosition.X - transformData.StartXOffset;
             var y = mercatorPosition.Y - transformData.StartYOffset;
-            
-            //var x
 
-            return (0, 0);
+            //obrót
+            var xTurned = x * transformData.DegreeCosRadOffset - y * transformData.DegreeSinRadOffset;
+            var yTurned = x * transformData.DegreeSinRadOffset + y * transformData.DegreeCosRadOffset;
+
+            //przemnożenie razy skalę, zeby dostosować do rozmiaru mapy
+
+            var xScaled = xTurned * transformData.ScaleX;
+            var yScaled = yTurned * transformData.ScaleX;
+
+            return (xScaled, yScaled);
         }
 
 
@@ -159,6 +167,7 @@ namespace Smartplayer.Authorization.WebApi.Controllers
             int mapWidth,
             int mapHeight)
         {
+            var transformData = new TransformData();
             var game = await _gameRepository.FindById(gameId);
             var fieldId = game.FieldId.Value;
             var field = await _fieldRepository.FindById(fieldId);
@@ -166,24 +175,85 @@ namespace Smartplayer.Authorization.WebApi.Controllers
 
             var leftDown = GetMeractorXY(fieldCoordinates.LeftDown, mapWidth, mapHeight);
             var leftUp = GetMeractorXY(fieldCoordinates.LeftUp, mapWidth, mapHeight);
-            var rightDown = GetMeractorXY(fieldCoordinates.LeftDown, mapWidth, mapHeight);
+            var rightDown = GetMeractorXY(fieldCoordinates.RightDown, mapWidth, mapHeight);
             var rightUp = GetMeractorXY(fieldCoordinates.RightUp, mapWidth, mapHeight);
+
+            if (leftUp.Y < leftDown.Y
+                && leftUp.Y < rightUp.Y
+                && leftUp.Y < rightDown.Y) //najmniejszy jest leftDown
+            {
+
+                //dystans z leftDown to rightDown
+                var b = ComputeDistance(leftUp.X, leftUp.Y, rightUp.X, rightUp.Y);
+                var c = ComputeDistance(leftUp.X, leftUp.Y, rightUp.X, leftUp.Y);
+                var rate = c / b;
+                var degree = -Math.Acos(rate);
+                var degreeCos = Math.Cos(degree);
+                var degreeSin = Math.Sin(degree);
+                var xOffset = leftDown.X;
+                var yOffset = leftDown.Y;
+
+                var lists = TurnPoints(xOffset, yOffset, degreeCos, degreeSin, leftDown, leftUp, rightDown, rightUp);
+
+                var scaleX = mapWidth / lists.XList.Max();
+                var scaleY = mapHeight / lists.YList.Max();
+
+                return new TransformData()
+                {
+                    ScaleY = scaleY,
+                    ScaleX = scaleX,
+                    StartXOffset = leftUp.X,
+                    StartYOffset = leftUp.Y,
+                    DegreeCosRadOffset = degreeCos,
+                    DegreeSinRadOffset = degreeSin,
+                    DegreeOffset = degree
+                };
+            }
 
             return new TransformData()
             {
-
+                ScaleY = 0,
+                ScaleX = 0,
+                StartXOffset = 0,
+                StartYOffset = 0,
+                DegreeCosRadOffset = 0,
+                DegreeSinRadOffset = 0,
+                DegreeOffset = 0
             };
         }
+
+        private (List<double> XList, List<double> YList) TurnPoints(
+            double xOffset,
+            double yOffset,
+            double degreeCosRadOffset,
+            double degreeSinRadOffset,
+            params (double X, double y)[] points)
+        {
+            var xList = new List<double>();
+            var yList = new List<double>();
+
+            foreach (var valueTuple in points)
+            {
+                var x = valueTuple.X - xOffset;
+                var y = valueTuple.y - yOffset;
+                xList.Add(x * degreeCosRadOffset - y * degreeSinRadOffset);
+                yList.Add(x * degreeSinRadOffset + y * degreeCosRadOffset);
+            }
+
+            return (xList, yList);
+        }
+        private double ComputeDistance(double x1, double y1, double x2, double y2) =>
+            Math.Sqrt(Math.Pow(x2 - x1, 2) + Math.Pow(y2 - y1, 2));
         
         private (double X, double Y)  GetMeractorXY(
             Models.Game.Position position,
             int mapWidth,
             int mapHeight)
         {
-            var x = (position.Lng + 180) * (mapWidth / 360);
+            var x = (position.Lng + 180) * (mapWidth / (double)360);
             var latRad = position.Lat * Math.PI / 180;
-            var mercN = Math.Log(Math.Tan((Math.PI / 4) + (latRad / 2)));
-            var y = (mapHeight / 2) - (mapWidth * mercN / 2 * Math.PI);
+            double mercN = Math.Log(Math.Tan((Math.PI / 4) + (latRad / 2)));
+            var y = (mapHeight / (double)2) - (mapWidth * mercN / (2 * Math.PI));
             return (x, y);
         }
         private (double X, double Y) GetMeractorXY(
@@ -191,10 +261,10 @@ namespace Smartplayer.Authorization.WebApi.Controllers
             int mapWidth,
             int mapHeight)
         {
-            var x = (position.Lng + 180) * (mapWidth / 360);
+            var x = (position.Lng + 180) * (mapWidth / (double)360);
             var latRad = position.Lat * Math.PI / 180;
-            var mercN = Math.Log(Math.Tan((Math.PI / 4) + (latRad / 2)));
-            var y = (mapHeight / 2) - (mapWidth * mercN / 2 * Math.PI);
+            double mercN = Math.Log(Math.Tan((Math.PI / 4) + (latRad / 2)));
+            var y = (mapHeight / (double)2) - (mapWidth * mercN /( 2 * Math.PI));
             return (x, y);
         }
 

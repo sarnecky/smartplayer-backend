@@ -9,9 +9,9 @@ namespace Smartplayer.Authorization.WebApi.DTO.Position.Output
     public class Position
     {
         [JsonProperty("x")]
-        public double X { get; set; }
+        public int X { get; set; }
         [JsonProperty("y")]
-        public double Y { get; set; }
+        public int Y { get; set; }
         [JsonProperty("date")]
         public DateTimeOffset Date { get; set; }
     }
