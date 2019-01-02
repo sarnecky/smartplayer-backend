@@ -18,6 +18,7 @@ using Smartplayer.Authorization.WebApi.Repositories.Field;
 using Smartplayer.Authorization.WebApi.Repositories.Club;
 using Newtonsoft.Json;
 using Smartplayer.Authorization.WebApi.DTO.Field.Input;
+using Smartplayer.Authorization.WebApi.Repositories.ApplicationUserClub;
 using Smartplayer.Authorization.WebApi.Repositories.Game;
 using Smartplayer.Authorization.WebApi.Repositories.Module;
 using Smartplayer.Authorization.WebApi.Repositories.Player;
@@ -73,6 +74,8 @@ namespace Smartplayer.Authorization.WebApi
             services.AddTransient<ITeamRepository, TeamRepository>(); 
             services.AddTransient<IGameRepository, GameRepository>();
             services.AddTransient<IModuleRepository, ModuleRepository>();
+            services.AddTransient<IApplicationUserClubRepository, ApplicationUserClubRepository>();
+            
 
             AutoMapper.Mapper.Initialize(cfg =>
             {
@@ -95,7 +98,7 @@ namespace Smartplayer.Authorization.WebApi
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
 
-            UpdateDatabase(app);
+            //UpdateDatabase(app);
             if (env.IsDevelopment())
             {
                 app.UseBrowserLink();

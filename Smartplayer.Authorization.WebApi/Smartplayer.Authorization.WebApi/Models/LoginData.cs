@@ -10,6 +10,5 @@ namespace Smartplayer.Authorization.WebApi.Models
     {
         public string Email { get; set; }
         public string Password { get; set; }
-        public Platform Platform { get; set; }
     }
 }

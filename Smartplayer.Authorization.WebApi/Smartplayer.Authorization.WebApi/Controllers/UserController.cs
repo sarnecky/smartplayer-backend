@@ -11,7 +11,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Smartplayer.Authorization.WebApi.Data;
+using Smartplayer.Authorization.WebApi.Data.Migrations;
 using Smartplayer.Authorization.WebApi.Models;
+using Smartplayer.Authorization.WebApi.Repositories.ApplicationUserClub;
 using Smartplayer.Authorization.WebApi.Repositories.Interfaces;
 using Smartplayer.Common.Authorization;
 using Smartplayer.Common.Base64;
@@ -30,25 +32,26 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         private readonly IUserService _userService;
         private ApplicationDbContext _appContext;
         private IConfiguration _configuration { get; }
+        private readonly IApplicationUserClubRepository _applicationUserClubRepository;
+        private readonly IClubRepository _clubRepository;
         public UserController(
             ApplicationDbContext appContext,
             SignInManager<ApplicationUser> signInManager,
             ILogger<TeamController> logger,
             IUserService userService,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IApplicationUserClubRepository applicationUserClubRepository,
+            IClubRepository clubRepository)
         {
             _signInManager = signInManager;
             _logger = logger;
             _userService = userService;
             _configuration = configuration;
+            _applicationUserClubRepository = applicationUserClubRepository;
+            _clubRepository = clubRepository;
             _appContext = appContext;
         }
 
-        /// <summary>
-        /// Return authorization token for user
-        /// </summary>
-        /// <param name="loginData"></param>
-        /// <returns></returns>
         [HttpPost("token")]
         [ProducesResponseType(200, Type = typeof(string))]
         [ProducesResponseType(400)]
@@ -62,14 +65,11 @@ namespace Smartplayer.Authorization.WebApi.Controllers
             if(!_userService.VerifyHashedPassword(user, loginData.Password).Equals(PasswordVerificationResult.Success))
                 return BadRequest(ResponseMessage.UserNotExsits());
 
-            return Ok(await GenerateTokens(user, loginData.Platform.ToString().ToLower()));
+            var club = (await _applicationUserClubRepository.FindByCriteria(i => i.ApplicationUserId == user.Id)).FirstOrDefault();
+            
+            return Ok(await GenerateTokens(user, club));
         }
 
-        /// <summary>
-        /// Return refresh token for user
-        /// </summary>
-        /// <param name="refreshTokenData"></param>
-        /// <returns></returns>
         [HttpPost("refreshtoken")]
         [ProducesResponseType(200, Type = typeof(string))]
         [ProducesResponseType(400)]
@@ -86,15 +86,11 @@ namespace Smartplayer.Authorization.WebApi.Controllers
                 return BadRequest(ResponseMessage.ProblemWithRefreshToken("Token is in bad format"));
 
             var user = await _userService.GetUserByEmail(dataForRefresh[1]);
+            var club = (await _applicationUserClubRepository.FindByCriteria(i => i.ApplicationUserId == user.Id)).FirstOrDefault();
 
-            return Ok(await GenerateTokens(user, dataForRefresh[2]));
+            return Ok(await GenerateTokens(user, club));
         }
 
-        /// <summary>
-        /// Sign up new user
-        /// </summary>
-        /// <param name="signUpRequest"></param>
-        /// <returns></returns>
         [HttpPost("register")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
@@ -107,20 +103,33 @@ namespace Smartplayer.Authorization.WebApi.Controllers
 
             var newUser = new ApplicationUser()
             {
-                UserName = $"{signUpRequest.FirstName} {signUpRequest.LastName}",
+                UserName = $"{signUpRequest.FirstName}",
                 Email = signUpRequest.Email,
             };
 
-            var createdUser = await _userService.CreateUser(user, signUpRequest.Password);
+            var createdUser = await _userService.CreateUser(newUser, signUpRequest.Password);
             if (!createdUser.Succeeded)
                 return BadRequest(createdUser.Errors);
+
+            var clubResult = await _clubRepository.AddAsync(new Models.Club.Club()
+            {
+                FullName = signUpRequest.ClubName
+            });
+
+            var userhehe = await _userService.GetUserByEmail(signUpRequest.Email);
+
+            var applicationUserInClub = await _applicationUserClubRepository.AddAsync(new ApplicationUserClub()
+            {
+                ApplicationUserId = userhehe.Id,
+                ClubId = clubResult.Id
+            });
 
             _logger.LogInformation($"User created a new account with email: {signUpRequest.Email}");
 
             return Ok();
         }
 
-        private async Task<LoginRepsonse> GenerateTokens(ApplicationUser user, string platform)
+        private async Task<LoginRepsonse> GenerateTokens(ApplicationUser user, ApplicationUserClub applicationUserClub)
         {
             var userClaims = await _userService.GetClaims(user);
             var jti = Guid.NewGuid().ToString();
@@ -138,10 +147,10 @@ namespace Smartplayer.Authorization.WebApi.Controllers
                 issuer: _configuration["Tokens:Issuer"],
                 audience: _configuration["Tokens:Issuer"],
                 claims: claims,
-                expires: platform.Equals("Mobile") ? DateTime.UtcNow.AddDays(14) : DateTime.UtcNow.AddDays(1),
+                expires:  DateTime.UtcNow.AddDays(14),
                 signingCredentials: creds);
 
-            var refresh = Base64Converter.Base64Encode($"{jti}-{user.UserName}-{platform.ToLower()}");
+            var refresh = Base64Converter.Base64Encode($"{jti}-{user.UserName}");
             user.RefreshToken = refresh;
             _appContext.Update(user);
             await _appContext.SaveChangesAsync();
@@ -149,8 +158,10 @@ namespace Smartplayer.Authorization.WebApi.Controllers
             return new LoginRepsonse()
             {
                 AccessToken = new JwtSecurityTokenHandler().WriteToken(token),
-                RefreshToken = refresh, //unsafe but easy. Zapisac w oddzielnej tabli zeby umozliwic dzialanie na obu platformach razem
-                Expiration = token.ValidTo
+                RefreshToken = refresh, 
+                Expiration = token.ValidTo,
+                ClubId = applicationUserClub?.ClubId ?? 0,
+                UserName = user.UserName
             };
         }
     }
