@@ -14,8 +14,6 @@ using Smartplayer.Authorization.WebApi.Services;
 using Smartplayer.Authorization.WebApi.Repositories.Interfaces;
 using Smartplayer.Authorization.WebApi.Repositories;
 using Microsoft.Extensions.Logging;
-using System.IO;
-using Microsoft.Extensions.PlatformAbstractions;
 using Smartplayer.Authorization.WebApi.Repositories.Field;
 using Smartplayer.Authorization.WebApi.Repositories.Club;
 using Newtonsoft.Json;
@@ -96,6 +94,8 @@ namespace Smartplayer.Authorization.WebApi
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+
+            UpdateDatabase(app);
             if (env.IsDevelopment())
             {
                 app.UseBrowserLink();
@@ -122,6 +122,19 @@ namespace Smartplayer.Authorization.WebApi
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "API");
             });
+        }
+
+        private static void UpdateDatabase(IApplicationBuilder app)
+        {
+            using (var serviceScope = app.ApplicationServices
+                .GetRequiredService<IServiceScopeFactory>()
+                .CreateScope())
+            {
+                using (var context = serviceScope.ServiceProvider.GetService<ApplicationDbContext>())
+                {
+                    context.Database.Migrate();
+                }
+            }
         }
     }
 }
