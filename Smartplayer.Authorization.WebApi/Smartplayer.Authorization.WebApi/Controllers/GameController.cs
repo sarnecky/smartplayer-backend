@@ -312,13 +312,13 @@ namespace Smartplayer.Authorization.WebApi.Controllers
         public async Task<IActionResult> gen()
         {
             var positions = new Positions();
-            positions.GameId = 2;
+            positions.GameId = 1;
             positions.Players = new List<PlayerWithPositions>()
             {
                 
                 new PlayerWithPositions()
                 {
-                    Id = 2,
+                    Id = 4,
                     Positions = new List<Position>()
                     {
 new Position(){ Date = DateTimeOffset.Parse("2018-12-17 20:00:00.8460000 +01:00"), Longitude = double.Parse("18.6301145"), Latitude = double.Parse("54.3702088")},
