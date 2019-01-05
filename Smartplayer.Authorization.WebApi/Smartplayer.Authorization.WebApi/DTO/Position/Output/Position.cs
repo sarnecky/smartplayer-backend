@@ -13,6 +13,6 @@ namespace Smartplayer.Authorization.WebApi.DTO.Position.Output
         [JsonProperty("y")]
         public int Y { get; set; }
         [JsonProperty("date")]
-        public DateTimeOffset Date { get; set; }
+        public string Date { get; set; }
     }
 }
